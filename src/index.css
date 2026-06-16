@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-white font-sans antialiased;
+    margin: 0;
+  }
+
+  code, pre {
+    @apply font-mono;
+  }
+
+}
+
+/* Custom scrollbar for military aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full hover:bg-secondary transition-colors;
+}
+
+/* Input styles */
+input, select {
+  @apply bg-card border border-border text-white px-4 py-2 rounded focus:outline-none focus:border-accent transition-colors;
+}
+
+button {
+  @apply transition-all duration-200 active:scale-95;
+}
+
+/* Animations */
+@keyframes scan {
+  from { left: -100%; }
+  to { left: 100%; }
+}
+
