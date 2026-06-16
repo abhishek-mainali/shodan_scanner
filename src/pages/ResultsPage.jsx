@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Download, Share2, Activity, ArrowLeft } from 'lucide-react';
+import { 
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+  Radar, RadarChart, PolarGrid, PolarAngleAxis,
+  AreaChart, Area
+} from 'recharts';
+
+import { Download, Share2, Activity, ArrowLeft, Shield, ShieldAlert, Cpu } from 'lucide-react';
+
 import { mockScans } from '../utils/mockData';
 import PortsTable from '../components/results/PortsTable';
 import CVEList from '../components/results/CVEList';
@@ -203,28 +209,53 @@ const ResultsPage = () => {
 
       <div className="min-h-[400px]">
         {activeTab === 'Overview' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-6">Service Distribution</h3>
-                <div className="h-[300px] w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Posture Radar */}
+              <div className="bg-card border border-border rounded-2xl p-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-20 transition-opacity">
+                  <Shield className="w-24 h-24" />
+                </div>
+                <h3 className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-accent" />
+                  Posture Assessment
+                </h3>
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={[
+                      { subject: 'CVE Risk', A: 100 - (scan.cves?.length * 10 || 0), fullMark: 150 },
+                      { subject: 'SSL/TLS', A: scan.ssl?.valid ? 100 : 20, fullMark: 150 },
+                      { subject: 'OSINT', A: scan.intel?.reputationScore || 80, fullMark: 150 },
+                      { subject: 'Surface', A: Math.max(0, 100 - (scan.ports?.length || 0) * 2), fullMark: 150 },
+                      { subject: 'Identity', A: scan.geo?.org ? 90 : 30, fullMark: 150 },
+                    ]}>
+                      <PolarGrid stroke="#334155" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 8 }} />
+                      <Radar
+                        name="Postue"
+                        dataKey="A"
+                        stroke="#06b6d4"
+                        fill="#06b6d4"
+                        fillOpacity={0.5}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Service Footprint */}
+              <div className="bg-card border border-border rounded-2xl p-6 relative overflow-hidden group">
+                <h3 className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                  <Cpu className="w-4 h-4 text-accent" />
+                  Service Footprint
+                </h3>
+                <div className="h-[250px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={portData}>
-                      <XAxis 
-                        dataKey="name" 
-                        stroke="#94a3b8" 
-                        fontSize={10} 
-                        tickLine={false} 
-                        axisLine={false}
-                      />
-                      <YAxis 
-                        stroke="#94a3b8" 
-                        fontSize={10} 
-                        tickLine={false} 
-                        axisLine={false}
-                      />
+                      <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 8 }} axisLine={false} tickLine={false} />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
+                        contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }}
                         itemStyle={{ color: '#06b6d4', fontWeight: 'bold' }}
                       />
                       <Bar dataKey="value" radius={[4, 4, 0, 0]}>
@@ -236,18 +267,66 @@ const ResultsPage = () => {
                   </ResponsiveContainer>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-card border border-border p-6 rounded-lg">
-                  <h4 className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-2">Total Vulnerabilities</h4>
-                  <p className="text-4xl font-black font-mono text-white">{scan.cves?.length || 0}</p>
+            </div>
+            
+            <div className="bg-card border border-border rounded-2xl p-8 relative overflow-hidden">
+               <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
+               <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-accent" />
+                    Operational Security Pulse
+                  </h3>
+                  <span className="text-[8px] font-bold text-accent bg-accent/10 px-2 py-1 rounded">REAL-TIME TELEMETRY</span>
+               </div>
+               <div className="h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={[
+                      { name: 'T-5', risk: 45 },
+                      { name: 'T-4', risk: 52 },
+                      { name: 'T-3', risk: 48 },
+                      { name: 'T-2', risk: riskScore - 5 },
+                      { name: 'T-1', risk: riskScore + 2 },
+                      { name: 'NOW', risk: riskScore },
+                    ]}>
+                      <defs>
+                        <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }} />
+                      <Area type="monotone" dataKey="risk" stroke="#06b6d4" fillOpacity={1} fill="url(#colorRisk)" strokeWidth={3} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-card border border-border p-8 rounded-2xl group hover:border-red-500/30 transition-all flex items-center justify-between">
+                <div className="space-y-1">
+                  <h4 className="text-[10px] font-black text-secondary uppercase tracking-widest">Active Vulnerabilities</h4>
+                  <p className="text-4xl font-black font-mono text-white group-hover:text-red-500 transition-colors">
+                    {scan.cves?.length || 0}
+                  </p>
                 </div>
-                <div className="bg-card border border-border p-6 rounded-lg text-right">
-                  <h4 className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-2">Unique Services</h4>
-                  <p className="text-4xl font-black font-mono text-white">{new Set(scan.ports?.map(p => p.service)).size}</p>
+                <div className="p-4 bg-red-500/10 rounded-xl text-red-500">
+                   <ShieldAlert className="w-8 h-8" />
+                </div>
+              </div>
+              <div className="bg-card border border-border p-8 rounded-2xl group hover:border-accent/30 transition-all flex items-center justify-between">
+                <div className="space-y-1">
+                  <h4 className="text-[10px] font-black text-secondary uppercase tracking-widest">Digital Footprint</h4>
+                  <p className="text-4xl font-black font-mono text-white group-hover:text-accent transition-colors">
+                    {scan.ports?.length || 0}
+                  </p>
+                </div>
+                <div className="p-4 bg-accent/10 rounded-xl text-accent">
+                   <Cpu className="w-8 h-8" />
                 </div>
               </div>
             </div>
+          </div>
+
 
             <div className="space-y-6">
               <RiskGauge score={riskScore} />

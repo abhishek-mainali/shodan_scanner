@@ -30,7 +30,10 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // Refresh token failed, clear everything
         localStorage.removeItem('reconx_access_token');
-        window.location.href = '/login';
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+
         return Promise.reject(refreshError);
       }
     }

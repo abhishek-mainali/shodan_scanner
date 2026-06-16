@@ -29,26 +29,34 @@ export const AuthProvider = ({ children }) => {
   };
 
   const checkMe = async () => {
+    const token = localStorage.getItem('reconx_access_token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      // If we have an access token, try to get profile
-      const token = localStorage.getItem('reconx_access_token');
-      if (token) {
-        const { data } = await api.get('/api/auth/me');
-        setUser(data);
-      } else {
-        // No token, but maybe we have a refresh cookie? 
-        // Let the interceptor handle the refresh
-        const { data } = await api.post('/api/auth/refresh');
-        localStorage.setItem('reconx_access_token', data.accessToken);
-        const { data: me } = await api.get('/api/auth/me');
-        setUser(me);
-      }
+      const { data } = await api.get('/api/auth/me');
+      setUser(data);
     } catch (e) {
-      setUser(null);
+      if (e.response?.status === 401) {
+        try {
+          const { data } = await api.post('/api/auth/refresh');
+          localStorage.setItem('reconx_access_token', data.accessToken);
+          const { data: me } = await api.get('/api/auth/me');
+          setUser(me);
+        } catch (refreshErr) {
+          setUser(null);
+          localStorage.removeItem('reconx_access_token');
+        }
+      } else {
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     checkMe();

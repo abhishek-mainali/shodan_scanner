@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Shield, Lock, User, Zap, AlertCircle, UserPlus, ArrowRight } from 'lucide-react';
+import { Shield, Lock, User, Zap, AlertCircle, UserPlus, ArrowRight, Globe } from 'lucide-react';
+
 import api from '../services/api';
 
 const LoginPage = () => {
@@ -13,9 +14,17 @@ const LoginPage = () => {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login } = useAuth();
+  const { login, user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  React.useEffect(() => {
+    if (!loading && user) {
+      const origin = location.state?.from?.pathname || '/';
+      navigate(origin, { replace: true });
+    }
+  }, [user, loading, navigate]);
+
 
   const handleAuth = async (e) => {
     e.preventDefault();
