@@ -12,14 +12,18 @@ import {
   ChevronRight,
   Search,
   Layers,
-  Target
+  Target,
+  LogOut
 } from 'lucide-react';
 import api from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [alertCount, setAlertCount] = useState(0);
+  const { logout, user } = useAuth();
+
 
   const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -93,7 +97,7 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-border mt-auto">
+      <div className="p-4 border-t border-border mt-auto space-y-2">
         <button 
           onClick={() => setCollapsed(!collapsed)}
           className="w-full flex items-center justify-center gap-2 p-2 rounded bg-background border border-border text-secondary hover:text-white transition-all"
@@ -101,7 +105,16 @@ const Sidebar = () => {
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           {!collapsed && <span className="text-[10px] font-black uppercase tracking-widest">Collapse Intel</span>}
         </button>
+        
+        <button 
+          onClick={logout}
+          className="w-full flex items-center justify-center gap-2 p-2 rounded bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+        >
+          <LogOut className="w-4 h-4" />
+          {!collapsed && <span className="text-[10px] font-black uppercase tracking-widest">Terminate Session</span>}
+        </button>
       </div>
+
 
       {!collapsed && (
         <div className="p-6">

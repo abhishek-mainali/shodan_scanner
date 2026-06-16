@@ -40,6 +40,33 @@ router.post('/register', requireAuth(['ADMIN']), async (req, res) => {
   res.status(201).json({ id: newUser.id, username: newUser.username, role: newUser.role });
 });
 
+// POST /signup (Public self-registration)
+router.post('/signup', async (req, res) => {
+  const { username, password, email } = req.body;
+  if (!username || !password || !email) return res.status(400).json({ error: "Username, password and email required" });
+  if (password.length < 8) return res.status(400).json({ error: "Password must be at least 8 characters" });
+
+  const users = loadUsers();
+  if (users.find(u => u.username === username)) return res.status(409).json({ error: "Operator ID already in registry" });
+  if (users.find(u => u.email === email)) return res.status(409).json({ error: "Email already exists" });
+
+  const hashedPassword = await bcrypt.hash(password, 12);
+  const newUser = {
+    id: Date.now().toString(),
+    username,
+    email,
+    password: hashedPassword,
+    role: 'ANALYST', 
+    createdAt: new Date().toISOString()
+  };
+
+
+  users.push(newUser);
+  saveUsers(users);
+  res.status(201).json({ status: "success", message: "Operator registered" });
+});
+
+
 // POST /login
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
